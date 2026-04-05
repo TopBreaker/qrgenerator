@@ -84,19 +84,29 @@ function readLocalStorage() {
 
 // Set callback for the app ready event
 Pebble.addEventListener("ready",
-                        function(e) {
-                          //console.log("connect! " + e.ready);
-                          //console.log(e.type);
-                          // Fetch saved symbol from local storage (using
-                          // standard localStorage webAPI)
-                        //localStorage.clear();
-                        readLocalStorage();
-                        var msg = {};
-                        msg.id=100;
-                        Pebble.sendAppMessage(msg);
-                        //console.log("sent ready signal");
-                          //generateCode();
-                        });
+                function(e) {
+                    // Try to fetch from Tasker HTTP server first
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', 'http://127.0.0.1:8765/qr', true);
+                    xhr.timeout = 4000;
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            try {
+                                var data = JSON.parse(xhr.responseText);
+                                if (data.text)  { text[0] = data.text;  localStorage.setItem('text',  data.text);  }
+                                if (data.text2) { text[1] = data.text2; localStorage.setItem('text1', data.text2); }
+                                if (data.text3) { text[2] = data.text3; localStorage.setItem('text2', data.text3); }
+                                if (data.text4) { text[3] = data.text4; localStorage.setItem('text3', data.text4); }
+                            } catch(ex) { console.log('Tasker parse error: ' + ex); }
+                        }
+                        generateCode();
+                    };
+                    xhr.onerror   = function() { readLocalStorage(); generateCode(); };
+                    xhr.ontimeout = function() { readLocalStorage(); generateCode(); };
+                    var msg = {};
+                    msg.id=100;
+                    Pebble.sendAppMessage(msg);
+                    xhr.send();
 
 // Set callback for appmessage events
 Pebble.addEventListener("appmessage",
