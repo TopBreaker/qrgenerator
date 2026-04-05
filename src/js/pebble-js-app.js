@@ -107,6 +107,7 @@ Pebble.addEventListener("ready",
                     msg.id=100;
                     Pebble.sendAppMessage(msg);
                     xhr.send();
+                    });
 
 // Set callback for appmessage events
 Pebble.addEventListener("appmessage",
